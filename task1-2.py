@@ -1,94 +1,59 @@
-# -------------------------------
-# Завдання 1
-# Задано матрицю X(n, n), n ≤ 15. Перетворити матрицю так, щоб добутки
-# елементів рядків утворювали неспадну послідовність.
+# variant 5, 2
 
-def row_product(row):
-    product = 1
-    for el in row:
-        product *= el
-    return product
+from collections import deque
+import inspect
+from typing import get_origin, get_args
 
+# 5
+def validate_types(func):
+    signature = inspect.signature(func)
+    annotations = func.__annotations__
 
-def sort_by_row_products(matrix):
-    return sorted(matrix, key=row_product)
+    def check_type(value, expected_type):
+        origin = get_origin(expected_type)
 
-print("\nЗавдання 1:")
-n = int(input("Введіть розмір матриці n (≤ 15): "))
-matrix = []
+        if origin is not None:
+            return any(isinstance(value, t) for t in get_args(expected_type))
 
-for i in range(n):
-    row = list(map(int, input(f"Введіть {n} елементів {i+1}-го рядка: ").split()))
-    matrix.append(row)
+        return isinstance(value, expected_type)
 
-sorted_matrix = sort_by_row_products(matrix)
+    def wrapper(*args, **kwargs):
+        bound = signature.bind(*args, **kwargs)
+        bound.apply_defaults()
 
-print("\nПеретворена матриця:")
-for row in sorted_matrix:
-    print(*row)
+        for name, value in bound.arguments.items():
+            if name in annotations:
+                expected_type = annotations[name]
+                if not check_type(value, expected_type):
+                    raise TypeError(
+                        f"Аргумент {name} має тип {type(value).__name__}, "
+                        f"коли очікується {expected_type}"
+                    )
 
+        return func(*args, **kwargs)
 
-# -----------------------------
-# Завдання 2
-# Є n=10 команд з різною кількістю очок. Потрібно визначити:
-# (a) чемпіона,
-# (b) команди на 2 і 3 місці,
-# (c) команди, що зайняли 1 і 2 місце, використовуючи два проходи по масиву.
-
-print("\nЗавдання 2:")
-
-n = int(input("Введіть кількість команд: "))
-teams = []
-points = []
-
-for i in range(n):
-    name = input(f"Назва команди {i+1}: ")
-    pts = int(input(f"Кількість очок для {name}: "))
-    teams.append(name)
-    points.append(pts)
-
-max_points = max(points)
-champion = teams[points.index(max_points)]
-print(f"\n(a) Чемпіон: {champion}")
-
-sorted_indices = sorted(range(n), key=lambda i: points[i], reverse=True)
-second = teams[sorted_indices[1]]
-third = teams[sorted_indices[2]]
-print(f"(b) 2 місце: {second}, 3 місце: {third}")
-
-first_max = max(points)
-first_index = points.index(first_max)
-
-second_max = -1
-second_index = -1
-for i in range(n):
-    if i != first_index and points[i] > second_max:
-        second_max = points[i]
-        second_index = i
-
-print(f"(c) 1 місце: {teams[first_index]}, 2 місце: {teams[second_index]}")
+    return wrapper
 
 
-# ----------------------------
-# Завдання 3
-# Є словник з пар слів-синонімів. Для заданого слова знайти його синонім.
-# Кожне слово має лише один синонім, і всі слова різні.
+@validate_types
+def calculate_price(name: str, price: int | float, quantity: int) -> float:
+    return price * quantity
 
-print("\nЗавдання 3:")
+print(calculate_price("Laptop", 25000, 2))
+print(calculate_price("Book", 500.50, 3))
+# print(calculate_price("Phone", "20000", 1)) # TypeError
 
-pairs = [
-    ("Hello", "Hi"),
-    ("Bye", "Goodbye"),
-    ("List", "Array")
-]
-word = "Goodbye"
+# 2
+print()
 
-synonyms = {}
-for w1, w2 in pairs:
-    synonyms[w1] = w2
-    synonyms[w2] = w1
+def sliding_window(data, n):
+    window = deque(maxlen=n)
 
-if word in synonyms:
-    print("Синонім:", synonyms[word])
-else:
-    print("Слова немає у словнику")
+    for value in data:
+        window.append(value)
+        if len(window) == n:
+            yield tuple(window)
+
+data = [1, 2, 3, 4, 5, 6]
+windows = sliding_window(data, 3)
+print(list(windows))
