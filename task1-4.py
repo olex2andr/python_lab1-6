@@ -3,12 +3,10 @@ import re
 
 # Завдання 1
 def term(k, x, a):
-    """Обчислює k-й член ряду."""
     return ((-1) ** k) * (x ** (3 * k)) / (a ** 5 + math.factorial(k))
 
 
 def series_sum(x, a, eps=1e-8, n_max=10000):
-    """Обчислення суми ряду з перевіркою умови точності."""
     s_prev = 0.0
     s_curr = 0.0
 
