@@ -1,57 +1,74 @@
-import datetime
+import numpy as np
+import pandas as pd
 
-class TransactionLogger:
-    def __init__(self, min_amount):
-        self.min_amount = min_amount
+import matplotlib
+matplotlib.use("TkAgg")
+import matplotlib.pyplot as plt
 
-    def __call__(self, func):
-        def wrapper(obj, amount):
-            result = func(obj, amount)
-            if abs(amount) > self.min_amount:
-                print(f"{datetime.datetime.now()} | {func.__name__} | {amount}")
-            return result
-        return wrapper
+# PART 1
 
+np.random.seed(42)
+n = 250
 
-class Account:
-    def __init__(self, owner, balance=0):
-        self.owner = owner
-        self.balance = balance
+delivery_time_minutes = np.random.randint(5, 120, size=n)
+distance_km = np.random.uniform(0.5, 20.0, size=n)
+order_type = np.random.choice(['Food', 'Documents', 'Package'], size=n)
+courier_id = np.random.choice([1, 2, 3, 4, 5], size=n)
 
-    @TransactionLogger(min_amount=100)
-    def deposit(self, amount):
-        self.balance += amount
-        return self.balance
+df = pd.DataFrame({
+    'delivery_time_minutes': delivery_time_minutes,
+    'distance_km': distance_km,
+    'order_type': order_type,
+    'courier_id': courier_id
+})
 
-    @TransactionLogger(min_amount=100)
-    def withdraw(self, amount):
-        if amount > self.balance:
-            raise ValueError("Недостатньо коштів")
-        self.balance -= amount
-        return self.balance
+df.to_csv("variant_20.csv", index=False)
+print("Файл variant_20.csv збережено.\n")
 
+# PART 2
 
-class SavingsAccount(Account):
-    def __init__(self, owner, balance=0, interest_rate=0.01, min_balance=0):
-        super().__init__(owner, balance)
-        self.interest_rate = interest_rate
-        self.min_balance = min_balance
+df = pd.read_csv("variant_20.csv")
 
-    def add_interest(self):
-        self.balance += self.balance * self.interest_rate
-        return self.balance
+df["minutes_per_km"] = df["delivery_time_minutes"] / df["distance_km"]
 
-    def withdraw(self, amount):
-        if self.balance - amount < self.min_balance:
-            raise ValueError("Менше за мінімальний баланс")
-        return super().withdraw(amount)
+avg_time_by_type = df.groupby("order_type")["delivery_time_minutes"].mean()
+avg_minutes_per_courier = df.groupby("courier_id")["minutes_per_km"].mean()
 
+max_courier = avg_minutes_per_courier.idxmax()
+max_courier_value = avg_minutes_per_courier.max()
 
-acc = Account("Віталік", 500)
-acc.deposit(50)
-acc.deposit(200)
-acc.withdraw(120)
+mean_distance = df["distance_km"].mean()
+long_trips = df[df["distance_km"] > mean_distance]
+avg_long_per_courier = long_trips.groupby("courier_id")["minutes_per_km"].mean()
+overall_avg_long = long_trips["minutes_per_km"].mean()
 
-s_acc = SavingsAccount("Олександр", 1000, interest_rate=0.05, min_balance=300)
-s_acc.add_interest()
-s_acc.withdraw(400)
+print("Середній час доставки за типами замовлень:")
+print(avg_time_by_type, "\n")
+
+print(f"Кур'єр з найбільшою середньою minutes_per_km: {max_courier}")
+print(f"Значення: {max_courier_value:.2f}\n")
+
+print("Середній minutes_per_km для довгих поїздок:")
+print(avg_long_per_courier, "\n")
+
+print(f"Загальна середня minutes_per_km (довгі поїздки): {overall_avg_long:.2f}\n")
+
+# PART 3
+
+plt.figure(figsize=(9, 5))
+plt.hist(df["delivery_time_minutes"], bins=20)
+plt.title("Розподіл часу доставки (delivery_time_minutes)")
+plt.xlabel("Час доставки (хв)")
+plt.ylabel("Кількість доставок")
+plt.grid(True)
+plt.show()
+
+avg_time_by_courier = df.groupby("courier_id")["delivery_time_minutes"].mean()
+
+plt.figure(figsize=(9, 5))
+plt.bar(avg_time_by_courier.index, avg_time_by_courier.values)
+plt.title("Середній час доставки для кожного кур'єра")
+plt.xlabel("Courier ID")
+plt.ylabel("Середній час доставки (хв)")
+plt.grid(True)
+plt.show()
