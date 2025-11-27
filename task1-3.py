@@ -1,34 +1,94 @@
-import math
+# -------------------------------
+# Завдання 1
+# Задано матрицю X(n, n), n ≤ 15. Перетворити матрицю так, щоб добутки
+# елементів рядків утворювали неспадну послідовність.
 
-print("1) z(a) = sin(a)^2")
-a = float(input("Введіть a: "))
-result = math.sin(a) ** 2
-print(f"z({a}) = {result}\n")
+def row_product(row):
+    product = 1
+    for el in row:
+        product *= el
+    return product
 
-print("2) Розмноження амеб")
-hours = int(input("Введіть кількість годин: "))
-divisions_count = hours // 3
-ameb_count = 1 * (2 ** divisions_count)
-print(f"Через {hours} год. буде {ameb_count} амеб\n")
 
-print("3) Робота з масивом")
-size = int(input("Введіть кількість елементів: "))
-numbers_array = [int(input(f"Елемент {i+1}: ")) for i in range(size)]
+def sort_by_row_products(matrix):
+    return sorted(matrix, key=row_product)
 
-negative_numbers = [x for x in numbers_array if x < 0]
-if negative_numbers:
-    print(f"Максимальний від'ємний елемент: {max(negative_numbers)}")
+print("\nЗавдання 1:")
+n = int(input("Введіть розмір матриці n (≤ 15): "))
+matrix = []
+
+for i in range(n):
+    row = list(map(int, input(f"Введіть {n} елементів {i+1}-го рядка: ").split()))
+    matrix.append(row)
+
+sorted_matrix = sort_by_row_products(matrix)
+
+print("\nПеретворена матриця:")
+for row in sorted_matrix:
+    print(*row)
+
+
+# -----------------------------
+# Завдання 2
+# Є n=10 команд з різною кількістю очок. Потрібно визначити:
+# (a) чемпіона,
+# (b) команди на 2 і 3 місці,
+# (c) команди, що зайняли 1 і 2 місце, використовуючи два проходи по масиву.
+
+print("\nЗавдання 2:")
+
+n = int(input("Введіть кількість команд: "))
+teams = []
+points = []
+
+for i in range(n):
+    name = input(f"Назва команди {i+1}: ")
+    pts = int(input(f"Кількість очок для {name}: "))
+    teams.append(name)
+    points.append(pts)
+
+max_points = max(points)
+champion = teams[points.index(max_points)]
+print(f"\n(a) Чемпіон: {champion}")
+
+sorted_indices = sorted(range(n), key=lambda i: points[i], reverse=True)
+second = teams[sorted_indices[1]]
+third = teams[sorted_indices[2]]
+print(f"(b) 2 місце: {second}, 3 місце: {third}")
+
+first_max = max(points)
+first_index = points.index(first_max)
+
+second_max = -1
+second_index = -1
+for i in range(n):
+    if i != first_index and points[i] > second_max:
+        second_max = points[i]
+        second_index = i
+
+print(f"(c) 1 місце: {teams[first_index]}, 2 місце: {teams[second_index]}")
+
+
+# ----------------------------
+# Завдання 3
+# Є словник з пар слів-синонімів. Для заданого слова знайти його синонім.
+# Кожне слово має лише один синонім, і всі слова різні.
+
+print("\nЗавдання 3:")
+
+pairs = [
+    ("Hello", "Hi"),
+    ("Bye", "Goodbye"),
+    ("List", "Array")
+]
+word = "Goodbye"
+
+synonyms = {}
+for w1, w2 in pairs:
+    synonyms[w1] = w2
+    synonyms[w2] = w1
+
+if word in synonyms:
+    print("Синонім:", synonyms[word])
 else:
-    print("Від'ємних елементів немає")
-
-odd_numbers = [x for x in numbers_array if x % 2 != 0]
-if odd_numbers:
-    average_odd = sum(odd_numbers) / len(odd_numbers)
-    print(f"Середнє арифметичне непарних елементів: {average_odd}")
-else:
-    print("Непарних елементів немає")
-
-if negative_numbers:
-    print("Від'ємні елементи масиву:", negative_numbers)
-else:
-    print("Від'ємних елементів немає")
+    print("Слова немає у словнику")
